@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Concept Generator</title>
+
+  <style>
+    :root{
+      --bg: #e7e1d6;
+      --panel: #f2ede4;
+      --panel2:#fbf8f2;
+      --ink: #2f2c22;
+      --muted: #6a6457;
+      --line: rgba(47,44,34,.14);
+
+      --cta: #2f2c22;
+      --ctaText: #f7f3ea;
+
+      --radius: 18px;
+      --shadow: 0 18px 45px rgba(0,0,0,.10);
+
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+      --max: 980px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--ink);
+      background:var(--bg);
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background: url("bg.png");
+      background-size:cover;
+      background-position:center;
+      z-index:-2;
+      transform:scale(1.02);
+    }
+
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:
+        radial-gradient(900px 600px at 15% 10%, rgba(143,134,111,.12), transparent 60%),
+        radial-gradient(900px 600px at 85% 10%, rgba(47,44,34,.18), transparent 60%),
+        linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.18));
+      z-index:-1;
+    }
+
+    .container{
+      width:min(var(--max), 100%);
+      margin:0 auto;
+      padding:0 18px;
+    }
+
+    .page{
+      min-height:100vh;
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:rgba(231,225,214,.86);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 0;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .brand img{
+      height:30px;
+      width:auto;
+      display:block;
+    }
+
+    .brandTitle .kicker{
+      font-size:11px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:800;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:48ch;
+    }
+
+    .brandTitle .title{
+      font-size:14px;
+      font-weight:950;
+      letter-spacing:-.02em;
+      text-transform:uppercase;
+      line-height:1.1;
+    }
+
+    .navActions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:rgba(251,248,242,.85);
+      color:var(--ink);
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:950;
+      font-size:13px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition: transform .08s ease, filter .12s ease, box-shadow .12s ease;
+    }
+
+    .btn:hover{
+      filter:brightness(1.02);
+    }
+
+    .btn:active{
+      transform:translateY(1px);
+    }
+
+    .btnPrimary{
+      background: linear-gradient(180deg, var(--cta), #1f1d16);
+      color:var(--ctaText);
+      border-color: rgba(47,44,34,.35);
+      box-shadow: 0 14px 32px rgba(0,0,0,.16);
+    }
+
+    .btnGhost{
+      background: rgba(251,248,242,.70);
+    }
+
+    main{
+      padding:22px 0 28px;
+    }
+
+    .card{
+      background: rgba(242,237,228,.82);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+
+    .hKicker{
+      font-size:11px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:900;
+    }
+
+    .h1{
+      margin:6px 0 0;
+      font-size: clamp(22px, 3vw, 34px);
+      letter-spacing:-.04em;
+      line-height:1.06;
+      font-weight:980;
+      text-transform:uppercase;
+    }
+
+    .sub{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+      max-width: 68ch;
+    }
+
+    .formula{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:rgba(251,248,242,.72);
+      border:1px solid rgba(47,44,34,.10);
+      font-family:var(--mono);
+      font-size:12.5px;
+      color:var(--ink);
+      overflow:auto;
+      white-space:nowrap;
+    }
+
+    /* ===== Variable controls ===== */
+    .variablePanel{
+      margin-top:14px;
+      padding:12px;
+      border-radius:16px;
+      background: rgba(47,44,34,.06);
+      border:1px dashed rgba(47,44,34,.22);
+    }
+
+    .variablePanelHeader{
+      margin-bottom:10px;
+      font-size:10.5px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:950;
+    }
+
+    .variableGrid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+    }
+
+    .variableCard{
+      padding:10px;
+      border-radius:16px;
+      border:1px solid rgba(47,44,34,.13);
+      background:rgba(251,248,242,.62);
+    }
+
+    .variableCard.characterCard{
+      background:rgba(255,214,102,.22);
+    }
+
+    .variableCard.goalCard{
+      background:rgba(255,145,77,.18);
+    }
+
+    .variableCard.worldCard{
+      background:rgba(94,160,255,.16);
+    }
+
+    .variableCard.reasonCard{
+      background:rgba(168,116,255,.15);
+    }
+
+    .variableLabel{
+      display:block;
+      margin-bottom:7px;
+      font-size:10.5px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink);
+      font-weight:950;
+    }
+
+    .variableSelect{
+      width:100%;
+      min-height:42px;
+      border:1px solid rgba(47,44,34,.18);
+      background:rgba(251,248,242,.88);
+      color:var(--ink);
+      padding:10px 10px;
+      border-radius:12px;
+      font-weight:800;
+      font-size:13px;
+      line-height:1.2;
+      cursor:pointer;
+    }
+
+    .miniMashBtn{
+      width:100%;
+      margin-top:8px;
+      appearance:none;
+      border:1px solid rgba(47,44,34,.16);
+      padding:9px 10px;
+      border-radius:999px;
+      font-weight:950;
+      font-size:10.5px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      cursor:pointer;
+      color:var(--ink);
+      transition: transform .08s ease, filter .12s ease, box-shadow .12s ease;
+    }
+
+    .miniMashBtn:hover{
+      filter:brightness(1.03);
+      box-shadow:0 8px 20px rgba(0,0,0,.08);
+    }
+
+    .miniMashBtn:active{
+      transform:translateY(1px);
+    }
+
+    .characterBtn{
+      background:rgba(255,214,102,.58);
+    }
+
+    .goalBtn{
+      background:rgba(255,145,77,.38);
+    }
+
+    .worldBtn{
+      background:rgba(94,160,255,.28);
+    }
+
+    .reasonBtn{
+      background:rgba(168,116,255,.26);
+    }
+
+    @media (max-width: 880px){
+      .variableGrid{
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 560px){
+      .variableGrid{
+        grid-template-columns: 1fr;
+      }
+
+      .nav{
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+      .navActions{
+        width:100%;
+        justify-content:flex-start;
+      }
+    }
+    /* ===== /Variable controls ===== */
+
+    .bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background: rgba(143,134,111,.16);
+      border:1px solid rgba(143,134,111,.24);
+      color: var(--ink);
+      font-weight:950;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      font-size:11.5px;
+      white-space:nowrap;
+    }
+
+    .output{
+      margin-top:14px;
+      padding:16px;
+      border-radius:18px;
+      background: rgba(251,248,242,.82);
+      border:1px solid rgba(47,44,34,.12);
+    }
+
+    .outputLabel{
+      font-size:11px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:900;
+      margin-bottom:8px;
+    }
+
+    .concept{
+      font-size: clamp(18px, 2.2vw, 24px);
+      line-height:1.25;
+      font-weight:980;
+      letter-spacing:-.02em;
+      color:var(--ink);
+    }
+
+    .concept span{
+      display:inline-block;
+      padding:3px 10px;
+      border-radius:999px;
+      background: rgba(143,134,111,.18);
+      border: 1px solid rgba(143,134,111,.28);
+      margin:2px 0;
+    }
+
+    .toast{
+      margin-top:10px;
+      min-height:18px;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.25;
+    }
+
+    .srOnly{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
+
+    footer{
+      padding:18px 0 24px;
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+    }
+
+    .footerRow{
+      border-top:1px solid var(--line);
+      padding-top:14px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    /* ===== Translate Bar ===== */
+    .translateBar{
+      margin-top:14px;
+      padding:14px;
+      border-radius:18px;
+      background: rgba(242,237,228,.82);
+      border:1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .translateRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:space-between;
+    }
+
+    .translateLeft{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .select{
+      border:1px solid var(--line);
+      background:rgba(251,248,242,.85);
+      color:var(--ink);
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:950;
+      font-size:13px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      cursor:pointer;
+    }
+
+    .translatedBox{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(47,44,34,.12);
+      background: rgba(251,248,242,.82);
+    }
+
+    .translatedText{
+      font-size: clamp(16px, 2vw, 20px);
+      line-height:1.28;
+      font-weight:900;
+      letter-spacing:-.01em;
+      color:var(--ink);
+      word-wrap:break-word;
+    }
+
+    .tinyNote{
+      margin-top:6px;
+      font-size:12.5px;
+      color:var(--muted);
+      line-height:1.3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="container">
+        <div class="nav">
+          <div class="brand">
+            <img src="sae-logo.png" alt="SAE University College" />
+            <div class="brandTitle">
+              <div class="kicker">Story Development Tool</div>
+              <div class="title">Concept Generator</div>
+            </div>
+          </div>
+
+          <div class="navActions">
+            <button class="btn btnPrimary" id="mashAllBtn" type="button" aria-label="Mash all variables">Mash All</button>
+            <button class="btn btnGhost" id="copyBtn" type="button" aria-label="Copy concept">Copy</button>
+            <button class="btn btnGhost" id="helpBtn" type="button" aria-label="Help">?</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <section class="card">
+          <div class="hKicker">From Idea to Impact</div>
+          <h2 class="h1">Build one strong concept</h2>
+          <p class="sub">
+            Press <b>Mash All</b> to create a full concept. Or use the dropdown menus to choose each part.
+            You can also mash one part at a time. Stop when the idea feels interesting. Then <b>Copy</b>.
+          </p>
+
+          <div class="formula">A (character) (goal) (world) (reason)</div>
+
+          <div class="variablePanel">
+            <div class="variablePanelHeader">Choose or mash each part</div>
+
+            <div class="variableGrid">
+              <div class="variableCard characterCard">
+                <label class="variableLabel" for="characterSelect">Character</label>
+                <select class="variableSelect" id="characterSelect" aria-label="Choose character"></select>
+                <button class="miniMashBtn characterBtn" id="mashCharacterBtn" type="button">Mash Character</button>
+              </div>
+
+              <div class="variableCard goalCard">
+                <label class="variableLabel" for="goalSelect">Goal</label>
+                <select class="variableSelect" id="goalSelect" aria-label="Choose goal"></select>
+                <button class="miniMashBtn goalBtn" id="mashGoalBtn" type="button">Mash Goal</button>
+              </div>
+
+              <div class="variableCard worldCard">
+                <label class="variableLabel" for="worldSelect">World</label>
+                <select class="variableSelect" id="worldSelect" aria-label="Choose world"></select>
+                <button class="miniMashBtn worldBtn" id="mashWorldBtn" type="button">Mash World</button>
+              </div>
+
+              <div class="variableCard reasonCard">
+                <label class="variableLabel" for="reasonSelect">Reason</label>
+                <select class="variableSelect" id="reasonSelect" aria-label="Choose reason"></select>
+                <button class="miniMashBtn reasonBtn" id="mashReasonBtn" type="button">Mash Reason</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bar">
+            <div class="pill" id="comboCount">0 concepts tried</div>
+          </div>
+
+          <div class="output">
+            <div class="outputLabel">Current concept</div>
+            <div class="concept" id="sentence"></div>
+            <div class="toast" id="toast"></div>
+            <span class="srOnly" id="ariaStatus" aria-live="polite"></span>
+          </div>
+
+          <div class="translateBar" aria-label="Translate concept">
+            <div class="translateRow">
+              <div class="translateLeft">
+                <span class="pill" style="margin:0;">Translate concept</span>
+
+                <label class="srOnly" for="langSelect">Choose language</label>
+                <select class="select" id="langSelect" aria-label="Choose translation language">
+                  <option value="hi">Hindi</option>
+                  <option value="bn">Bengali</option>
+                  <option value="ur">Urdu</option>
+                  <option value="ta">Tamil</option>
+                  <option value="te">Telugu</option>
+                  <option value="mr">Marathi</option>
+                  <option value="gu">Gujarati</option>
+                  <option value="kn">Kannada</option>
+                  <option value="ml">Malayalam</option>
+                  <option value="pa">Punjabi</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="de">German</option>
+                  <option value="it">Italian</option>
+                  <option value="pt">Portuguese</option>
+                  <option value="nl">Dutch</option>
+                  <option value="sv">Swedish</option>
+                  <option value="no">Norwegian</option>
+                  <option value="da">Danish</option>
+                  <option value="fi">Finnish</option>
+                  <option value="pl">Polish</option>
+                  <option value="cs">Czech</option>
+                  <option value="tr">Turkish</option>
+                  <option value="el">Greek</option>
+                  <option value="ru">Russian</option>
+                  <option value="uk">Ukrainian</option>
+                  <option value="ar">Arabic</option>
+                  <option value="he">Hebrew</option>
+                  <option value="zh-CN">Chinese (Simplified)</option>
+                  <option value="zh-TW">Chinese (Traditional)</option>
+                  <option value="ja">Japanese</option>
+                  <option value="ko">Korean</option>
+                  <option value="th">Thai</option>
+                  <option value="vi">Vietnamese</option>
+                  <option value="id">Indonesian</option>
+                </select>
+
+                <button class="btn btnPrimary" id="translateBtn" type="button">Convert</button>
+                <button class="btn btnGhost" id="copyTranslatedBtn" type="button">Copy translated</button>
+              </div>
+
+              <div id="google_translate_element" class="srOnly" aria-hidden="true"></div>
+            </div>
+
+            <div class="translatedBox">
+              <div class="outputLabel" style="margin:0 0 8px;">Translated concept</div>
+              <div class="translatedText" id="translatedText">—</div>
+              <div class="tinyNote" id="translateNote">
+                Uses Google Translate. Requires internet access and scripts enabled.
+              </div>
+            </div>
+          </div>
+
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const OPTIONS = {
+      character: [
+        "failed Bollywood star",
+        "famous Bollywood star",
+        "child of a famous criminal",
+        "international spy",
+        "street magician",
+        "runaway bride",
+        "village hero",
+        "young hacker",
+        "ghost hunter",
+        "rich kid with a secret",
+        "famous cricket player",
+        "royal bodyguard",
+        "junior police officer",
+        "lonely robot",
+        "school student with strange powers",
+        "food delivery rider",
+        "temple dancer",
+        "documentary filmmaker",
+        "social media influencer",
+        "masked superhero"
+      ],
+
+      goal: [
+        "must escape",
+        "must find a missing person",
+        "must hide a secret",
+        "must win one final contest",
+        "must stop a wedding",
+        "must solve a murder",
+        "must save their family",
+        "must protect a magic object",
+        "must clear their name",
+        "must stop a villain",
+        "must find the truth",
+        "must survive one night",
+        "must return home",
+        "must deliver a mystery package",
+        "must enter a forbidden place",
+        "must stop a curse",
+        "must rescue their best friend",
+        "must become famous again",
+        "must prove they are innocent",
+        "must choose between love and duty"
+      ],
+
+      world: [
+        "in a neon city",
+        "inside an old palace",
+        "in a crowded Mumbai street",
+        "at a Bollywood film set",
+        "inside a haunted school",
+        "during a giant wedding",
+        "in a desert festival",
+        "inside a secret underground lab",
+        "on a mountain train",
+        "in a village during monsoon",
+        "inside a luxury hotel",
+        "at a cricket stadium",
+        "in a future version of India",
+        "inside a dream world",
+        "on a floating market",
+        "inside an abandoned cinema",
+        "at a music festival",
+        "inside a royal fort",
+        "in a city where everyone wears masks",
+        "inside a video game world"
+      ],
+
+      reason: [
+        "because someone is watching them",
+        "because time is running out",
+        "because their family is in danger",
+        "because they are blamed for a crime",
+        "because they need money",
+        "because they love the wrong person",
+        "because a ghost knows the truth",
+        "because the villain knows their secret",
+        "because the whole city is searching for them",
+        "because they made one terrible mistake",
+        "because their best friend betrayed them",
+        "because a magic object has chosen them",
+        "because their real identity must stay hidden",
+        "because the wedding must not happen",
+        "because a camera recorded everything",
+        "because the police do not believe them",
+        "because their dream is becoming real",
+        "because a monster wakes at night",
+        "because they promised someone long ago",
+        "because no one else can help"
+      ]
+    };
+
+    const PRESETS = [
+      {
+        character: "failed Bollywood star",
+        goal: "must become famous again",
+        world: "at a Bollywood film set",
+        reason: "because a camera recorded everything",
+        exact: "A failed Bollywood star must become famous again at a Bollywood film set because a camera recorded everything."
+      },
+      {
+        character: "child of a famous criminal",
+        goal: "must clear their name",
+        world: "in a neon city",
+        reason: "because the whole city is searching for them",
+        exact: "A child of a famous criminal must clear their name in a neon city because the whole city is searching for them."
+      },
+      {
+        character: "runaway bride",
+        goal: "must escape",
+        world: "during a giant wedding",
+        reason: "because they love the wrong person",
+        exact: "A runaway bride must escape during a giant wedding because they love the wrong person."
+      },
+      {
+        character: "ghost hunter",
+        goal: "must survive one night",
+        world: "inside a haunted school",
+        reason: "because a ghost knows the truth",
+        exact: "A ghost hunter must survive one night inside a haunted school because a ghost knows the truth."
+      }
+    ];
+
+    const els = {
+      sentence: document.getElementById("sentence"),
+      toast: document.getElementById("toast"),
+      comboCount: document.getElementById("comboCount"),
+      ariaStatus: document.getElementById("ariaStatus"),
+
+      mashAllBtn: document.getElementById("mashAllBtn"),
+      mashCharacterBtn: document.getElementById("mashCharacterBtn"),
+      mashGoalBtn: document.getElementById("mashGoalBtn"),
+      mashWorldBtn: document.getElementById("mashWorldBtn"),
+      mashReasonBtn: document.getElementById("mashReasonBtn"),
+
+      characterSelect: document.getElementById("characterSelect"),
+      goalSelect: document.getElementById("goalSelect"),
+      worldSelect: document.getElementById("worldSelect"),
+      reasonSelect: document.getElementById("reasonSelect"),
+
+      copyBtn: document.getElementById("copyBtn"),
+      helpBtn: document.getElementById("helpBtn"),
+
+      langSelect: document.getElementById("langSelect"),
+      translateBtn: document.getElementById("translateBtn"),
+      translatedText: document.getElementById("translatedText"),
+      copyTranslatedBtn: document.getElementById("copyTranslatedBtn"),
+      translateNote: document.getElementById("translateNote")
+    };
+
+    let tries = 0;
+
+    function fillSelect(selectEl, arr){
+      selectEl.innerHTML = "";
+
+      arr.forEach((txt) => {
+        const opt = document.createElement("option");
+        opt.value = txt;
+        opt.textContent = txt;
+        selectEl.appendChild(opt);
+      });
+    }
+
+    function escapeHTML(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function presetHTML(p){
+      return `A <span>${escapeHTML(p.character)}</span> <span>${escapeHTML(p.goal)}</span> <span>${escapeHTML(p.world)}</span> <span>${escapeHTML(p.reason)}</span>.`;
+    }
+
+    function buildSentence(){
+      const c = els.characterSelect.value;
+      const g = els.goalSelect.value;
+      const w = els.worldSelect.value;
+      const r = els.reasonSelect.value;
+
+      for (const p of PRESETS){
+        if (p.character === c && p.goal === g && p.world === w && p.reason === r){
+          return { html: presetHTML(p), plain: p.exact, isPreset:true };
+        }
+      }
+
+      const plain = `A ${c} ${g} ${w} ${r}.`;
+      const html  = `A <span>${escapeHTML(c)}</span> <span>${escapeHTML(g)}</span> <span>${escapeHTML(w)}</span> <span>${escapeHTML(r)}</span>.`;
+
+      return { html, plain, isPreset:false };
+    }
+
+    function announce(msg){
+      if (!els.ariaStatus) return;
+      els.ariaStatus.textContent = msg;
+    }
+
+    function bumpTries(){
+      tries += 1;
+      els.comboCount.textContent = `${tries} concepts tried`;
+    }
+
+    function render({silent=false} = {}){
+      const out = buildSentence();
+      els.sentence.innerHTML = out.html;
+
+      if (!silent) bumpTries();
+
+      if (out.isPreset){
+        els.toast.textContent = "Example loaded.";
+        announce("Preset concept loaded.");
+      } else {
+        els.toast.textContent = "";
+        announce("Concept updated.");
+      }
+
+      els.translatedText.textContent = "—";
+
+      return out.plain;
+    }
+
+    function pickRandom(selectEl){
+      const n = selectEl.options.length;
+      selectEl.selectedIndex = Math.floor(Math.random() * n);
+    }
+
+    function randomizeAll(){
+      pickRandom(els.characterSelect);
+      pickRandom(els.goalSelect);
+      pickRandom(els.worldSelect);
+      pickRandom(els.reasonSelect);
+      render();
+    }
+
+    function randomizeCharacter(){
+      pickRandom(els.characterSelect);
+      render();
+    }
+
+    function randomizeGoal(){
+      pickRandom(els.goalSelect);
+      render();
+    }
+
+    function randomizeWorld(){
+      pickRandom(els.worldSelect);
+      render();
+    }
+
+    function randomizeReason(){
+      pickRandom(els.reasonSelect);
+      render();
+    }
+
+    function setSelectToValue(selectEl, value){
+      const idx = Array.from(selectEl.options).findIndex(o => o.value === value);
+      if (idx >= 0) selectEl.selectedIndex = idx;
+    }
+
+    function loadPreset(i){
+      const p = PRESETS[i];
+      if (!p) return;
+
+      setSelectToValue(els.characterSelect, p.character);
+      setSelectToValue(els.goalSelect, p.goal);
+      setSelectToValue(els.worldSelect, p.world);
+      setSelectToValue(els.reasonSelect, p.reason);
+
+      render({silent:true});
+      els.toast.textContent = "Example loaded.";
+      announce("Preset concept loaded.");
+    }
+
+    async function copyConcept(){
+      const text = buildSentence().plain;
+
+      try{
+        await navigator.clipboard.writeText(text);
+        els.toast.textContent = "Copied!";
+        announce("Copied to clipboard.");
+      }catch(e){
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        els.toast.textContent = "Copied!";
+        announce("Copied to clipboard.");
+      }
+    }
+
+    function showHelp(){
+      alert(
+`How to use:
+1) Press Mash All to create a full random concept.
+2) Use the dropdown menus to choose each part.
+3) Use Mash Character, Mash Goal, Mash World, or Mash Reason to change one part.
+4) Stop when the concept feels interesting.
+5) Press Copy.
+
+Shortcuts:
+• Space = Mash All
+• C = Copy
+• T = Translate
+• 1–4 = Presets`
+      );
+    }
+
+    async function translateConcept(){
+      const text = buildSentence().plain;
+      const target = els.langSelect.value;
+
+      els.translatedText.textContent = "Translating…";
+      announce("Translating concept.");
+
+      try{
+        const url =
+          "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=" +
+          encodeURIComponent(target) +
+          "&dt=t&q=" +
+          encodeURIComponent(text);
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Network response not ok");
+
+        const data = await res.json();
+        const translated = (data[0] || []).map(seg => seg[0]).join("");
+
+        els.translatedText.textContent = translated || "—";
+        announce("Translation complete.");
+      }catch(err){
+        els.translatedText.textContent = "Translation unavailable. The network may be blocking Google Translate.";
+        els.translateNote.textContent =
+          "If this is hosted on a restricted network, the Google endpoint may be blocked. A backend/API-key translator is the stronger option.";
+        announce("Translation failed.");
+      }
+    }
+
+    async function copyTranslated(){
+      const text = els.translatedText.textContent || "";
+
+      if (!text || text === "—" || text.startsWith("Translat") || text.startsWith("Translation unavailable")){
+        els.toast.textContent = "Nothing translated yet.";
+        announce("Nothing to copy.");
+        return;
+      }
+
+      try{
+        await navigator.clipboard.writeText(text);
+        els.toast.textContent = "Translated text copied!";
+        announce("Translated text copied.");
+      }catch(e){
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        els.toast.textContent = "Translated text copied!";
+        announce("Translated text copied.");
+      }
+    }
+
+    // Init
+    fillSelect(els.characterSelect, OPTIONS.character);
+    fillSelect(els.goalSelect, OPTIONS.goal);
+    fillSelect(els.worldSelect, OPTIONS.world);
+    fillSelect(els.reasonSelect, OPTIONS.reason);
+
+    loadPreset(0);
+    tries = 0;
+    els.comboCount.textContent = "0 concepts tried";
+    render({silent:true});
+
+    // Main buttons
+    els.mashAllBtn.addEventListener("click", randomizeAll);
+    els.copyBtn.addEventListener("click", copyConcept);
+    els.helpBtn.addEventListener("click", showHelp);
+
+    // Individual mash buttons
+    els.mashCharacterBtn.addEventListener("click", randomizeCharacter);
+    els.mashGoalBtn.addEventListener("click", randomizeGoal);
+    els.mashWorldBtn.addEventListener("click", randomizeWorld);
+    els.mashReasonBtn.addEventListener("click", randomizeReason);
+
+    // Dropdown changes
+    els.characterSelect.addEventListener("change", () => render());
+    els.goalSelect.addEventListener("change", () => render());
+    els.worldSelect.addEventListener("change", () => render());
+    els.reasonSelect.addEventListener("change", () => render());
+
+    // Translation
+    els.translateBtn.addEventListener("click", translateConcept);
+    els.copyTranslatedBtn.addEventListener("click", copyTranslated);
+
+    // Keyboard shortcuts
+    window.addEventListener("keydown", (e) => {
+      const activeTag = document.activeElement && document.activeElement.tagName.toLowerCase();
+
+      if (activeTag === "input" || activeTag === "textarea" || activeTag === "select") {
+        return;
+      }
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        randomizeAll();
+      }
+
+      if (e.key.toLowerCase() === "c") {
+        copyConcept();
+      }
+
+      if (e.key.toLowerCase() === "t") {
+        translateConcept();
+      }
+
+      if (["1","2","3","4"].includes(e.key)) {
+        loadPreset(Number(e.key) - 1);
+      }
+    });
+  </script>
+
+  <script>
+    function googleTranslateElementInit() {
+      if (window.google && google.translate) {
+        new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+      }
+    }
+  </script>
+
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>
